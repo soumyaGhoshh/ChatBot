@@ -1,0 +1,110 @@
+:root {
+    --primary-color: #2A3B4D;
+    --secondary-color: #B38B6D;
+    --accent-color: #8C1D18;
+    --text-dark: #2A2A2A;
+    --text-light: #F5F5F5;
+    --gradient-bg: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--gradient-bg);
+    font-family: 'Roboto', sans-serif;
+}
+
+/* Navigation */
+.legal-nav {
+    background: var(--primary-color);
+    border-bottom: 4px solid var(--secondary-color);
+    box-shadow: 0 4px 15px rgba(42, 59, 77, 0.1);
+}
+
+.navbar-toggler {
+    border-color: var(--text-light);
+}
+
+.navbar-toggler-icon {
+    filter: invert(1);
+}
+
+.nav-link {
+    color: var(--text-light) !important;
+    transition: all 0.3s ease;
+}
+
+.nav-link:hover {
+    color: var(--secondary-color) !important;
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    padding: 2rem 0;
+}
+
+.chat-container {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    height: calc(100vh - 200px);
+    min-height: 500px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Footer */
+.legal-footer {
+    background: var(--primary-color);
+    color: rgba(255, 255, 255, 0.8);
+    padding: 1.5rem;
+    text-align: center;
+    border-top: 2px solid var(--secondary-color);
+    position: relative;
+    margin-top: auto;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .chat-container {
+        height: auto;
+        min-height: 70vh;
+    }
+    
+    .navbar-nav {
+        margin-top: 1rem;
+    }
+    
+    .legal-footer .container {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .user-question,
+    .bot-answer {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .main-content {
+        padding: 1rem 0;
+    }
+    
+    .chat-box {
+        height: 60vh !important;
+    }
+    
+    .input-group {
+        flex-direction: column;
+    }
+    
+    #languageSelect {
+        width: 100%;
+        border-radius: 8px !important;
+        margin-bottom: 0.5rem;
+    }
+}

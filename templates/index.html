@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LexAI - Legal Assistant</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg legal-nav">
+        <div class="container">
+            <a class="navbar-brand text-light" href="#">
+                <i class="fas fa-balance-scale-left me-2"></i>LexAI
+                <span class="law-badge ms-2">v1.0</span>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="mainNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-book-law me-1"></i>Acts
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><button class="dropdown-item" onclick="showLegal('HMA')">Hindu Marriage Act</button></li>
+                            <li><button class="dropdown-item" onclick="showLegal('IPC')">Indian Penal Code</button></li>
+                            <li><button class="dropdown-item" onclick="showLegal('RTI')">Right to Information</button></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" onclick="clearHistory()">
+                            <i class="fas fa-eraser me-1"></i>New Session
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#about">
+                            <i class="fas fa-info-circle me-1"></i>About
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <div class="chat-container p-4">
+                <div class="chat-box p-3" style="height: 100%; overflow-y: auto;">
+                    <!-- Chat History -->
+                    <section class="chat-history">
+                        <div class="text-center mb-4">
+                            <div class="law-badge">Legal Consultation Session</div>
+                        </div>
+                        
+                        {% for question, answer in history %}
+                        <div class="user-question mb-3 p-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fas fa-user-tie me-2"></i>
+                                <div class="fw-bold">Your Query</div>
+                            </div>
+                            <div class="ps-3">{{ question }}</div>
+                        </div>
+                        <div class="bot-answer mb-4 p-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fas fa-robot me-2"></i>
+                                <div class="fw-bold">Legal Opinion</div>
+                            </div>
+                            <div class="ps-3">{{ answer }}</div>
+                        </div>
+                        {% endfor %}
+                    </section>
+
+                    <!-- Loading Animation -->
+                    <section id="loading" class="text-center d-none py-4">
+                        <div class="loading-gavel">⚖</div>
+                        <div class="text-muted mt-2">Analyzing Legal Statutes...</div>
+                    </section>
+                </div>
+
+                <!-- Input Section -->
+                <section class="chat-input mt-4 px-3">
+                    <form id="questionForm" onsubmit="return handleSubmit(event)">
+                        <div class="input-group">
+                            <select id="languageSelect" style="max-width: 100px;" class="form-select legal-input w-auto rounded-start" 
+                                    onchange="setLanguage(this.value)">
+                                <option value="en">🇺🇸 English</option>
+                                <option value="hi">🇮🇳 हिंदी</option>
+                            </select>
+                            
+                            <input type="text" id="questionInput" 
+                                   style="min-width: 250px;"
+                                   class="form-control legal-input" 
+                                   placeholder="Present your legal query..." 
+                                   aria-label="Legal question">
+                            
+                            <button type="submit" id="submitBtn" class="btn legal-btn rounded-end">
+                                <i class="fas fa-paper-plane me-2"></i>Submit
+                            </button>
+                        </div>
+                        <div id="errorMessage" class="text-danger mt-2 small"></div>
+                    </form>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="legal-footer" id="about">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <div class="text-start mb-2 mb-md-0">
+                    ⚖️ AI Legal Assistant<br>
+                    <small>Powered by Gemini 1.5 Pro</small>
+                </div>
+                <div class="text-center mb-2 mb-md-0">
+                    <a href="#terms" class="text-light me-3">Terms</a>
+                    <a href="#privacy" class="text-light">Privacy</a>
+                </div>
+                <div class="text-end">
+                    Crafted with <span class="text-danger">❤️</span> by<br>
+                    <strong>Onkar Somvanshi</strong>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function handleSubmit(e) {
+            e.preventDefault();
+            const input = document.getElementById('questionInput');
+            const button = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('errorMessage');
+            const chatBox = document.querySelector('.chat-box');
+            
+            // Disable UI
+            input.disabled = true;
+            button.disabled = true;
+            loading.classList.remove('d-none');
+            error.textContent = '';
+
+            // Send request
+            const formData = new FormData();
+            formData.append('question', input.value);
+
+            fetch('/ask', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) return response.json().then(err => { throw err; });
+                return response.json();
+            })
+            .then(data => {
+                chatBox.scrollTo({
+                top: chatBox.scrollHeight,
+                behavior: 'smooth'
+                });
+                if (data.error) throw new Error(data.error);
+                
+                // Create new message elements
+                const userQuestion = document.createElement('div');
+                userQuestion.className = 'user-question mb-3';
+                userQuestion.innerHTML = `
+                    <div class="fw-bold text-primary">You:</div>
+                    <div class="ps-3">${data.question}</div>
+                `;
+
+                const botAnswer = document.createElement('div');
+                botAnswer.className = 'bot-answer mb-4';
+                botAnswer.innerHTML = `
+                    <div class="fw-bold text-success">Legal Bot:</div>
+                    <div class="ps-3">${data.answer}</div>
+                `;
+
+                // Append new messages
+                chatBox.appendChild(userQuestion);
+                chatBox.appendChild(botAnswer);
+                input.value = '';
+                chatBox.scrollTop = chatBox.scrollHeight;
+            })
+            .catch(error => {
+                error.textContent = error.message;
+            })
+            .finally(() => {
+                // Re-enable UI and hide spinner
+                input.disabled = false;
+                button.disabled = false;
+                loading.classList.add('d-none');
+                input.focus();
+            });
+            
+            return false;
+        }
+
+        function showLegal(act) {
+            const questionInput = document.getElementById('questionInput');
+            questionInput.value = `Explain ${act} in simple terms`;
+            questionInput.focus();
+        }
+        function clearHistory() {
+    const chatBox = document.querySelector('.chat-box');
+    const loading = document.getElementById('loading');
+    
+    // Show loading animation
+    loading.classList.remove('d-none');
+    
+    fetch('/clear', { method: 'POST' })
+        .then(response => {
+            chatBox.innerHTML = `
+                <div class="text-center py-5">
+                    <div class="loading-gavel">⚖</div>
+                    <div class="text-muted mt-3">New Session Created</div>
+                </div>
+            `;
+            setTimeout(() => window.location.reload(), 1500);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        })
+        .finally(() => {
+            loading.classList.add('d-none');
+        });
+}
+
+    function setLanguage(lang) {
+      const formData = new FormData();
+      formData.append('language', lang);
+      fetch('/set-language', {
+        method: 'POST',
+        body: formData,
+      }).then(() => window.location.reload());
+    }
+
+    window.onload = () => {
+      const chatBox = document.querySelector('.chat-box');
+      chatBox.scrollTop = chatBox.scrollHeight;
+    };
+  </script>
+</body>
+</html>
